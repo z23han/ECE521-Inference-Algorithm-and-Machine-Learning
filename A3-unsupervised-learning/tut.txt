@@ -1,0 +1,10 @@
+Why does k-means clustering algorithm terminate? 
+
+find: 
+    L(\mu) = \sum_(n=1)^B min(abs(x_n - \mu_k)^2)
+    compute squared euclidean distance
+    ((x-mu)**2).sum() works for vector, but how about matrices? 
+
+non-convex vs. convex
+
+
