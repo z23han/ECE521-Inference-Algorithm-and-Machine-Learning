@@ -12,20 +12,20 @@ def ed_dist(sess, data, centroids):
     # convert to tensorflow const
     tf_data = tf.convert_to_tensor(data, dtype=tf.float64)
     tf_centroids = tf.convert_to_tensor(centroids, dtype=tf.float64)
+    print(type(tf_data), tf_data)
+    print(type(tf_centroids), tf_centroids)
     # squared values
     tf_data_2 = tf.reduce_sum(tf.square(tf_data), 1)
     tf_centroids_2 = tf.reduce_sum(tf.square(tf_centroids), 1)
     # summed values
     tf_mult_sum = tf.matmul(tf_data, tf_centroids, transpose_b=True)
-    # centroids transpose
-    tf.transpose(tf_centroids_2)
     # res
-    res = -2 * tf_mult_sum + tf_centroids_2
-    res = tf.transpose(res)
+    tf_res = -2 * tf_mult_sum + tf_centroids_2
+    tf_res = tf.transpose(tf_res)
     tf_data_2 = tf.reshape(tf_data_2, [1, data_dim])
-    res += tf_data_2
-    res = tf.transpose(res)
-    return res
+    tf_res += tf_data_2
+    tf_res = tf.transpose(tf_res)
+    return tf_res
 
 
 def ed_dist2(data, centroids):
@@ -43,10 +43,13 @@ if __name__ == '__main__':
     sess = tf.Session()
     data = np.random.rand(5, 2)
     centroids = data[:3]
-    dist1 = ed_dist(sess, data, centroids)
-    dist2 = ed_dist2(data, centroids)
-    s = sess.run(dist1)
-    s2 = sess.run(dist2)
+    tf_dist = ed_dist(sess, data, centroids)
+    tf_min = tf.argmin(tf_dist, dimension=1)
+    tf_loss = tf.reduce_sum(tf.reduce_mean(ed_dist(sess, data, centroids),1,keep_dims=True))
+    s = sess.run(tf_dist)
+    m = sess.run(tf_min)
+    l = sess.run(tf_loss)
     print(s)
-    print(s2)
+    print(m)
+    print(l)
 
