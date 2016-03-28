@@ -63,6 +63,7 @@ def model_train():
                 print('centroids:', centroids)
         plot_model(np.array(range(epoch)), losses, K)
     
+
 # plot loss vs. number of updates
 def plot_model(updates, loss, K):
     assert len(updates) == len(loss)

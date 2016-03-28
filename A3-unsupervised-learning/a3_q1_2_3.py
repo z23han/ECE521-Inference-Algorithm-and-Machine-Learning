@@ -1,6 +1,10 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+## run algorithm with K=1, 2, 3, 4, 5 and get the percentage of points belonging to each cluster
+## scatter plot of the data
 
 
 data = None
@@ -39,9 +43,8 @@ def init_data(inputFile, K):
 
 
 # train the model
-def model_train():
+def model_train(K):
     inputFile = 'data2D.npy'
-    K = 3
     ## initialize session
     graph = tf.Graph()
     with graph.as_default():
@@ -53,6 +56,7 @@ def model_train():
         ## model training
         epoch = 500
         losses = []
+        
         for i in range(epoch):
             feed_dict = {tf_data: data}
             opt, loss, min_index, centroids = sess.run([tf_opt, tf_loss, tf_min_index, tf_centroids], feed_dict=feed_dict)
@@ -61,8 +65,71 @@ def model_train():
                 print('epoch:', i)
                 print('loss:', loss)
                 print('centroids:', centroids)
-        plot_model(np.array(range(epoch)), losses, K)
-    
+        #plot_model(np.array(range(epoch)), losses, K)
+    # get the percentages for different clusters
+    data_perc = data_percentage(min_index)
+    # get the indices of data in different clusters
+    data_indices = mark_data(min_index, K)
+    scatter_plot(data_indices, K)
+    return data_perc, loss
+
+
+# scatter plot
+def scatter_plot(data_indices, K):
+    color = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
+    plt.figure(1)
+    for i in range(len(data_indices)):
+        indices = data_indices[i]
+        data_cluster = data[indices]        # get a cluster of data
+        x_cluster = data_cluster[:,0]
+        y_cluster = data_cluster[:,1]
+        plt.plot(x_cluster, y_cluster, color[i]+'o')
+    plt.title(str(K)+' clusters')
+    plt.show()
+    return
+
+
+
+
+# plot loss vs. K
+def plot_loss_K(K, loss):
+    plt.figure(1)
+    plt.plot(K, loss, 'ro-')
+    plt.ylabel('loss')
+    plt.xlabel('K')
+    plt.show()
+
+
+
+# mark the points based on the min_index
+def mark_data(min_index, K):
+    assert len(min_index) == len(data)
+    # index_bucket used for storing indices with the same index
+    index_bucket = []
+    for c in range(K):
+        c_indices = np.where(min_index == c)
+        index_bucket.append(c_indices[0])
+    return index_bucket
+
+
+
+# compute the data point percentage
+def data_percentage(min_index):
+    count_dict = {}
+    perc_dict = {}
+    for index in min_index:
+        if index not in count_dict:
+            count_dict[index] = 1
+        else:
+            count_dict[index] += 1
+    total_num = len(min_index)
+    assert total_num == data_num
+    for k, val in count_dict.iteritems():
+        perc_dict[k] = val/float(total_num)
+    return perc_dict
+
+
+
 # plot loss vs. number of updates
 def plot_model(updates, loss, K):
     assert len(updates) == len(loss)
@@ -90,6 +157,21 @@ def euclidean_dist():
 
 
 if __name__ == '__main__':
-    model_train()
+    # compute different K and report the data point percentage
+    the_file_name = 'q1_percentage.txt'
+    try:
+        os.remove(the_file_name)
+    except OSError:
+        pass
+    the_file = open(the_file_name, 'a')
+    losses = []
+    K_range = range(1, 6)
+    for K in K_range:
+        data_perc, loss = model_train(K)
+        the_file.write(str(data_perc)+'\n')
+        losses.append(loss)
+    plot_loss_K(K_range, losses)
+    the_file.close()
+    
 
 
